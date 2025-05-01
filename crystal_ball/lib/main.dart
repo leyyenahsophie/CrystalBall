@@ -5,15 +5,51 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
-
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+import 'colors.dart';
+import 'review_screen.dart';
+import 'registration.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp());
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    print('Starting app initialization...');
+
+    try {
+      await dotenv.load(fileName: ".env");
+      print('Environment variables loaded successfully');
+      print(
+        'Firebase Web API Key: ${dotenv.env['FIREBASE_WEB_API_KEY']?.substring(0, 5)}...',
+      );
+    } catch (e) {
+      print('Error loading .env file: $e');
+      rethrow;
+    }
+
+    try {
+      print('Initializing Firebase...');
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      print('Firebase initialized successfully');
+    } catch (e) {
+      print('Error initializing Firebase: $e');
+      rethrow;
+    }
+
+    runApp(const MyApp());
+  } catch (e, stackTrace) {
+    print('Fatal error during initialization: $e');
+    print('Stack trace: $stackTrace');
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(child: Text('Failed to initialize app: $e')),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -23,7 +59,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ChatBoard',
+      title: 'CrystalBall',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -39,42 +75,55 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.homePageBkg, // Light purple background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Welcome to CrystalBall, Your AI Book Recommendation Tool',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+              'Crystal Ball',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            Image(
+              image: const AssetImage('assets/images/crystal_ball.png'),
+              width: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery.of(context).size.height * 0.5,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 50),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(200, 50),
-              ),
-              child: const Text('Sign In'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RegisterPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(200, 50),
-              ),
-              child: const Text('Register'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(200, 50),
+                  ),
+                  child: const Text('Sign In', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontFamily: 'Island Moments')),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MainRegisterPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(200, 50),
+                  ),
+                  child: const Text('Register', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontFamily: 'Island Moments')),
+                ),
+              ],
             ),
           ],
         ),
@@ -84,23 +133,42 @@ class SplashScreen extends StatelessWidget {
 }
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: EmailPasswordForm(auth: FirebaseAuth.instance),
+        child: Container(
+          width: 853,
+          height: 1094,
+          decoration: const BoxDecoration(color: Color(0xFFE3D3EB)),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 214,
+                top: 28,
+                child: SizedBox(
+                  width: 275,
+                  height: 74,
+                  child: Text(
+                    'Crystal Ball',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color(0xFF3C3A79),
+                      fontSize: 36,
+                      fontFamily: 'Island Moments',
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 260,
+                top: 180,
+                child: EmailPasswordForm(auth: FirebaseAuth.instance),
+              ),
+            ],
           ),
         ),
       ),
@@ -108,28 +176,12 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class RegisterPage extends StatelessWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+class MainRegisterPage extends StatelessWidget {
+  const MainRegisterPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: RegisterEmailSection(auth: FirebaseAuth.instance),
-          ),
-        ),
-      ),
-    );
+    return const RegisterPage();
   }
 }
 
@@ -154,7 +206,6 @@ class _LoggedInPageState extends State<LoggedInPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('ChatBoard'),
@@ -178,7 +229,7 @@ class _LoggedInPageState extends State<LoggedInPage> {
           setState(() => _currentIndex = index);
         },
         children: [
-          // Home Page with Chat Rooms
+          // Home Page
           Column(
             children: [
               Padding(
@@ -195,7 +246,7 @@ class _LoggedInPageState extends State<LoggedInPage> {
             ],
           ),
           // Profile Page
-          Center(
+                   Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -210,20 +261,6 @@ class _LoggedInPageState extends State<LoggedInPage> {
                   'Email: ${user?.email}',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
-              ],
-            ),
-          ),
-          // Settings Page
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.settings, size: 100),
-                const SizedBox(height: 20),
-                Text(
-                  'Settings Page',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -232,7 +269,9 @@ class _LoggedInPageState extends State<LoggedInPage> {
                       await FirebaseAuth.instance.signOut();
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => const SplashScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const SplashScreen(),
+                        ),
                         (route) => false,
                       );
                     },
@@ -245,6 +284,10 @@ class _LoggedInPageState extends State<LoggedInPage> {
                 ),
               ],
             ),
+          ),
+          // Settings Page
+          Center(
+            child: ReviewPage(),
           ),
         ],
       ),
@@ -276,15 +319,15 @@ class _LoggedInPageState extends State<LoggedInPage> {
   }
 }
 
-class RegisterEmailSection extends StatefulWidget {
-  RegisterEmailSection({Key? key, required this.auth}) : super(key: key);
+class EmailPasswordForm extends StatefulWidget {
+  EmailPasswordForm({Key? key, required this.auth}) : super(key: key);
   final FirebaseAuth auth;
 
   @override
-  _RegisterEmailSectionState createState() => _RegisterEmailSectionState();
+  _EmailPasswordFormState createState() => _EmailPasswordFormState();
 }
 
-class _RegisterEmailSectionState extends State<RegisterEmailSection> {
+class _EmailPasswordFormState extends State<EmailPasswordForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -292,9 +335,9 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
   bool _initialState = true;
   String? _userEmail;
 
-  void _register() async {
+  void _login() async {
     try {
-      await widget.auth.createUserWithEmailAndPassword(
+      await widget.auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -325,135 +368,115 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          TextFormField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
-            validator: (value) {
-              if (value?.isEmpty ?? true) {
-                return 'Please enter some text';
-              }
-              return null;
-            },
+          const Text(
+            'Email',
+            style: TextStyle(
+              color: Color(0xFF3C3A79),
+              fontSize: 36,
+              fontFamily: 'Josefin Slab',
+            ),
           ),
-          TextFormField(
-            controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
-            validator: (value) {
-              if (value?.isEmpty ?? true) {
-                return 'Please enter some text';
-              }
-              return null;
-            },
-          ),
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            alignment: Alignment.center,
+            width: 315,
+            height: 76,
+            decoration: BoxDecoration(
+              color: const Color(0xA33C3A79),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: TextFormField(
+              controller: _emailController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Enter email',
+                hintStyle: TextStyle(color: Colors.white54),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              ),
+              validator: (value) {
+                if (value?.isEmpty ?? true) {
+                  return 'Please enter some text';
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            'Password',
+            style: TextStyle(
+              color: Color(0xFF3C3A79),
+              fontSize: 36,
+              fontFamily: 'Josefin Slab',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 315,
+            height: 76,
+            decoration: BoxDecoration(
+              color: const Color(0xA33C3A79),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Enter password',
+                hintStyle: TextStyle(color: Colors.white54),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              ),
+              validator: (value) {
+                if (value?.isEmpty ?? true) {
+                  return 'Please enter some text';
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: 261,
+            height: 55,
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _register();
-                }
-              },
-              child: Text('Submit'),
-            ),
-          ),
-          Container(
-            alignment: Alignment.center,
-            child: Text(
-              _initialState
-                  ? 'Please Register'
-                  : _success
-                      ? 'Successfully registered $_userEmail'
-                      : 'Registration failed',
-              style: TextStyle(color: _success ? Colors.green : Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class EmailPasswordForm extends StatefulWidget{
-  EmailPasswordForm({Key? key, required this.auth}) : super(key:key);
-  final FirebaseAuth auth;
-
-  @override
-  _EmailPasswordFormState createState() => _EmailPasswordFormState();
-}
-
-class _EmailPasswordFormState extends State<EmailPasswordForm>{
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _success = false;
-  bool _initialState = true;
-  String? _userEmail;
-
-  void _login() async{
-    try{
-      await widget.auth.signInWithEmailAndPassword(
-        email: _emailController.text, 
-        password: _passwordController.text
-      );
-      setState(() {
-        _success = true;
-        _userEmail = _emailController.text;
-        _initialState = false;
-      });
-      if (_success) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const LoggedInPage()),
-          (route) => false,
-        );
-      }
-    } catch (e){
-      setState(() {
-        _success = false;
-        _initialState = false;
-      });
-    } 
-  }
-
-
-  @override
-  Widget build(BuildContext context){
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          TextFormField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
-            validator: (value){
-              if (value?.isEmpty ?? true){
-                return 'Please enter some text';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
-            validator: (value){
-              if (value?.isEmpty ?? true){
-                return 'Please enter some text';
-              }
-              return null;
-            },
-          ),
-          Container (
-            padding: const EdgeInsets.symmetric(vertical:16.0),
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: (){
-                if (_formKey.currentState!.validate()){
                   _login();
                 }
               },
-              child: Text('Submit'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFACAAC7),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Login',
+                style: TextStyle(
+                  color: Color(0xFF3C3A79),
+                  fontSize: 28,
+                  fontFamily: 'Josefin Slab',
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          const Text(
+            "Register here if you don't have an account!",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF3C3A79),
+              fontSize: 24,
+              fontFamily: 'Josefin Slab',
+              shadows: [
+                Shadow(
+                  offset: Offset(0, 4),
+                  blurRadius: 4,
+                  color: Color(0x40000000),
+                ),
+              ],
             ),
           ),
           Container(
@@ -462,12 +485,12 @@ class _EmailPasswordFormState extends State<EmailPasswordForm>{
               _initialState
                   ? 'Please Login'
                   : _success
-                      ? 'Successfully logged in $_userEmail'
-                      : 'Login failed',
+                  ? 'Successfully logged in $_userEmail'
+                  : 'Login failed',
               style: TextStyle(color: _success ? Colors.green : Colors.red),
             ),
           ),
-        ]
+        ],
       ),
     );
   }

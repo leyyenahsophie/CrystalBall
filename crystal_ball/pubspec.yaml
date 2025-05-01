@@ -36,6 +36,8 @@ dependencies:
   cloud_firestore: ^5.6.6
   flutter_dotenv: ^5.2.1
   bottom_navy_bar: ^6.1.0
+  flutter_form_builder: ^10.0.1
+  form_builder_validators: ^11.1.2
 
 
 
@@ -62,22 +64,22 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - .env
+    - assets/images/crystal_ball.png
   #   - images/a_dot_ham.jpeg
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
 
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
+  fonts:
+    - family: Island Moments
+      fonts:
+        - asset: assets/fonts/island_moments.ttf
+    - family: Josefine Slab
+      fonts:
+        - asset: assets/fonts/josefine_slab.ttf
+    - family: Sedan SC
+      fonts:
+        - asset: assets/fonts/sedan_sc.ttf
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
