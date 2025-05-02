@@ -1,4 +1,6 @@
+import 'package:crystal_ball/colors.dart';
 import 'package:flutter/material.dart';
+import 'colors.dart';
 
 class ReadingListPage extends StatelessWidget {
   final List<String> wantToRead = ['Book A', 'Book B', 'Book C'];
@@ -115,11 +117,29 @@ class ReadingListPage extends StatelessWidget {
         children: [
           Align(
             alignment: Alignment.topLeft,
-            child: Icon(Icons.info_outline, size: 20, color: Color(0xFF3C3A79)),
+            child: IconButton(
+              onPressed:(){
+
+              },
+              icon: Icon(Icons.info_outline, size: 20, color: AppColors.textPrimary),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              ),
+            ),
           ),
           Align(
             alignment: Alignment.bottomRight,
-            child: Icon(Icons.edit, size: 20, color: Color(0xFF3C3A79)),
+            child: IconButton(
+              onPressed: () {
+                // Add your edit functionality here
+              },
+              icon: Icon(Icons.edit, size: 20, color: AppColors.textPrimary),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              ),
+            ),
           ),
           Center(
             child: Text(

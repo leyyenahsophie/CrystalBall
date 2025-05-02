@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'colors.dart';
+import 'main.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -232,16 +234,27 @@ class _RegisterFormState extends State<RegisterForm> {
           ),
 
           const SizedBox(height: 20),
-          const Text(
-            'Login here if you have an account!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Color(0xFF3C3A79),
-              fontFamily: 'Josefin Slab',
-              shadows: [
-                Shadow(offset: Offset(0, 2), blurRadius: 2, color: Colors.black26),
-              ],
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text(
+              'Login here if you have an account!',
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+                fontFamily: 'Josefin Slab',
+              ),
             ),
           ),
           if (!_initial)

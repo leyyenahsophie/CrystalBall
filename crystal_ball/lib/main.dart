@@ -10,6 +10,10 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'colors.dart';
 import 'review_screen.dart';
 import 'registration.dart';
+import 'profile.dart';
+import 'reading_list.dart';
+import 'discussion_boards.dart';
+
 
 void main() async {
   try {
@@ -82,7 +86,7 @@ class SplashScreen extends StatelessWidget {
           children: [
             const Text(
               'Crystal Ball',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize:100, fontWeight: FontWeight.bold, fontFamily: 'Island Moments', color:AppColors.textPrimary),
             ),
             Image(
               image: const AssetImage('assets/images/crystal_ball.png'),
@@ -106,7 +110,7 @@ class SplashScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(200, 50),
                   ),
-                  child: const Text('Sign In', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontFamily: 'Island Moments')),
+                  child: const Text('Sign In', style: TextStyle(color: AppColors.textPrimary, fontSize: 40, fontFamily: 'Island Moments')),
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton(
@@ -121,7 +125,7 @@ class SplashScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(200, 50),
                   ),
-                  child: const Text('Register', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontFamily: 'Island Moments')),
+                  child: const Text('Register', style: TextStyle(color: AppColors.textPrimary, fontSize: 40, fontFamily: 'Island Moments')),
                 ),
               ],
             ),
@@ -208,7 +212,7 @@ class _LoggedInPageState extends State<LoggedInPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ChatBoard'),
+        title: const Text('Crystal Ball'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -246,48 +250,23 @@ class _LoggedInPageState extends State<LoggedInPage> {
             ],
           ),
           // Profile Page
-                   Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.person, size: 100),
-                const SizedBox(height: 20),
-                Text(
-                  'Profile Page',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Email: ${user?.email}',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SplashScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Logout'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          Center(
+            child: ProfilePage(
+  currentEmail: user?.email ?? '',
+  currentName: user?.email ?? '',
+),
           ),
           // Settings Page
           Center(
             child: ReviewPage(),
+          ),
+          // Reading List Page
+          Center(
+            child: ReadingListPage(),
+          ),
+          // Discussion Board Page
+          Center(
+            child: DiscussionBoardPage(),
           ),
         ],
       ),
@@ -310,7 +289,17 @@ class _LoggedInPageState extends State<LoggedInPage> {
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.settings),
-            title: const Text("Settings"),
+            title: const Text("Review Screen"),
+            activeColor: const Color(0xFF495867),
+          ),
+          BottomNavyBarItem(
+            icon: const Icon(Icons.settings),
+            title: const Text("Reading List"),
+            activeColor: const Color(0xFF495867),
+          ),
+                    BottomNavyBarItem(
+            icon: const Icon(Icons.settings),
+            title: const Text("Discussion Board"),
             activeColor: const Color(0xFF495867),
           ),
         ],
@@ -463,20 +452,27 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             ),
           ),
           const SizedBox(height: 40),
-          const Text(
-            "Register here if you don't have an account!",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(0xFF3C3A79),
-              fontSize: 24,
-              fontFamily: 'Josefin Slab',
-              shadows: [
-                Shadow(
-                  offset: Offset(0, 4),
-                  blurRadius: 4,
-                  color: Color(0x40000000),
-                ),
-              ],
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RegisterPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text(
+              'Register here if you don\'t have an account!',
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+                fontFamily: 'Josefin Slab',
+              ),
             ),
           ),
           Container(
