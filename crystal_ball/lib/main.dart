@@ -213,7 +213,15 @@ class _LoggedInPageState extends State<LoggedInPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crystal Ball'),
+        backgroundColor: const Color(0xFFD3C9D1),
+        title: const Text(
+          'Crystal Ball',
+          style: TextStyle(
+            fontSize: 36,
+            color: Color(0xFF3C3A79),
+            fontFamily: 'Island Moments',
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -236,24 +244,24 @@ class _LoggedInPageState extends State<LoggedInPage> {
         children: [
           // Home Page
           const HomeScreenPage(),
+          // Reading List Page
+          Center(
+            child: ReadingListPage(),
+          ),
+          // Review Screen
+          Center(
+            child: ReviewPage(),
+          ),
+          // Discussion Board Page
+          Center(
+            child: DiscussionBoardPage(),
+          ),
           // Profile Page
           Center(
             child: ProfilePage(
               currentEmail: user?.email ?? '',
               currentName: user?.email ?? '',
             ),
-          ),
-          // Settings Page
-          Center(
-            child: ReviewPage(),
-          ),
-          // Reading List Page
-          Center(
-            child: ReadingListPage(),
-          ),
-          // Discussion Board Page
-          Center(
-            child: DiscussionBoardPage(),
           ),
         ],
       ),
@@ -270,23 +278,23 @@ class _LoggedInPageState extends State<LoggedInPage> {
             activeColor: const Color(0xFFC33149),
           ),
           BottomNavyBarItem(
-            icon: const Icon(Icons.person),
-            title: const Text("Profile"),
+            icon: const Icon(Icons.book),
+            title: const Text("Reading List"),
             activeColor: const Color(0xFFA8C256),
           ),
           BottomNavyBarItem(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.rate_review),
             title: const Text("Review Screen"),
             activeColor: const Color(0xFF495867),
           ),
           BottomNavyBarItem(
-            icon: const Icon(Icons.settings),
-            title: const Text("Reading List"),
+            icon: const Icon(Icons.forum),
+            title: const Text("Discussion Board"),
             activeColor: const Color(0xFF495867),
           ),
           BottomNavyBarItem(
-            icon: const Icon(Icons.settings),
-            title: const Text("Discussion Board"),
+            icon: const Icon(Icons.person),
+            title: const Text("Profile"),
             activeColor: const Color(0xFF495867),
           ),
         ],

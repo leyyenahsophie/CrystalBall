@@ -59,15 +59,6 @@ class _ReviewPageState extends State<ReviewPage> {
           children: [
             const SizedBox(height: 30),
             const Text(
-              'Crystal Ball',
-              style: TextStyle(
-                fontSize: 48,
-                fontFamily: 'Island Moments',
-                color: Color(0xFF3C3A79),
-              ),
-            ),
-            const SizedBox(height: 30),
-            const Text(
               'Submit Your Review',
               style: TextStyle(
                 fontSize: 32,

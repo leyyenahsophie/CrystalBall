@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'api_service.dart';
+import 'dart:math';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._internal();
@@ -17,7 +18,15 @@ class DatabaseService {
         email: email,
         password: password,
       );
-      return userCredential.user?.uid;
+      
+      final uid = userCredential.user?.uid;
+      if (uid != null) {
+        // Generate new recommended books on login
+        await generateRecommendedBooks(uid);
+        print('Generated new recommended books for user: $uid');
+      }
+      
+      return uid;
     } on FirebaseAuthException catch (e) {
       print('Login error: ${e.code} - ${e.message}');
       return null;
@@ -48,13 +57,16 @@ class DatabaseService {
         'displayName': email,
         'genres': [],
         'readingList': {
-          'wantToRead' : [],
-          'currentlyReading' : [],
-          'finishedReading': [],
+          'wantToRead': [],
+          'currentlyReading': [],
+          'completed': [],
         },
-        'recommendations':[],
+        'recommendations': [],
         'activeDiscussionBoards': [],
       });
+
+      // Generate and store recommended books
+      await generateRecommendedBooks(uid);
       
       return uid;
     } on FirebaseAuthException catch (e) {
@@ -165,27 +177,232 @@ Future<void> changeDisplayName(String userId, String newName) async{
     });
   }
 
-  // Task methods
-  Future<void> addTask(String userId, String taskName) async {
+  // Update book status in books collection
+  Future<void> updateBookStatus(String userId, String bookTitle, String status) async {
     try {
-      await _firestore.collection('tasks').add({
-        'userId': userId,
-        'taskName': taskName,
-        'isCompleted': false,
-        'createdAt': FieldValue.serverTimestamp(),
+      // First check if the book exists in the user's books collection
+      final bookQuery = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('books')
+          .where('title', isEqualTo: bookTitle)
+          .get();
+
+      if (bookQuery.docs.isEmpty) {
+        print('Book not found in user\'s collection: $bookTitle');
+        return;
+      }
+
+      final bookDoc = bookQuery.docs.first;
+      final bookRef = bookDoc.reference;
+      final bookData = bookDoc.data();
+
+      // Update the book's status in the books collection
+      await bookRef.update({
+        'wantToRead': status == 'Want to Read',
+        'currentlyReading': status == 'Currently Reading',
+        'completed': status == 'Completed',
       });
+
+      // Get the current reading list
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+      if (userData == null || userData['readingList'] == null) return;
+
+      final readingList = Map<String, List<dynamic>>.from(userData['readingList']);
+      
+      // Remove the book from all lists first
+      for (var list in readingList.keys) {
+        readingList[list] = (readingList[list] as List)
+            .where((book) => book['title'] != bookTitle)
+            .toList();
+      }
+
+      // Add the book to the appropriate list
+      if (status == 'Want to Read') {
+        readingList['wantToRead'] = [...readingList['wantToRead'] ?? [], bookData];
+      } else if (status == 'Currently Reading') {
+        readingList['currentlyReading'] = [...readingList['currentlyReading'] ?? [], bookData];
+      } else if (status == 'Completed') {
+        readingList['completed'] = [...readingList['completed'] ?? [], bookData];
+      }
+
+      // Update the reading list
+      await _firestore.collection('users').doc(userId).update({
+        'readingList': readingList,
+      });
+
     } catch (e) {
-      print('Error adding task: $e');
+      print('Error updating book status: $e');
       rethrow;
     }
   }
 
+  // Add a book to the user's books collection
+  Future<void> addBookToCollection(String userId, Map<String, dynamic> book) async {
+    try {
+      // Check if book already exists
+      final existingBook = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('books')
+          .where('title', isEqualTo: book['title'])
+          .get();
 
-  Stream<QuerySnapshot> getTasks(String userId) {
-    return _firestore
-        .collection('tasks')
-        .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .snapshots();
+      if (existingBook.docs.isEmpty) {
+        // Add new book to collection
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('books')
+            .add({
+          ...book,
+          'wantToRead': false,
+          'currentlyReading': false,
+          'completed': false,
+        });
+      }
+    } catch (e) {
+      print('Error adding book to collection: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> generateRecommendedBooks(String userId) async {
+    try {
+      final List<String> genres = [
+        'art',
+        'biography',
+        'fiction',
+        'nonfiction',
+        'comics',
+        'drama',
+        'mystery',
+        'thriller'
+      ];
+
+      List<Map<String, dynamic>> allRecommendedBooks = [];
+
+      for (String genre in genres) {
+        try {
+          final books = await ApiService.fetchBooks(genre);
+          if (books.isNotEmpty) {
+            // Randomly select 2 books from the genre
+            final random = Random();
+            final selectedBooks = books.length >= 2 
+                ? List.generate(2, (_) => books[random.nextInt(books.length)])
+                : books;
+
+            for (var book in selectedBooks) {
+              final bookData = {
+                'title': book.title,
+                'author': book.author,
+                'description': book.description,
+                'imageUrl': book.imageUrl,
+                'genre': book.genre,
+                'publishedDate': book.publishedDate,
+                'wantToRead': false,
+                'currentlyReading': false,
+                'completed': false,
+              };
+              
+              // Add to recommended books list
+              allRecommendedBooks.add(bookData);
+              
+              // Add to user's books collection
+              await addBookToCollection(userId, bookData);
+            }
+          }
+        } catch (e) {
+          print('Error fetching books for genre $genre: $e');
+        }
+      }
+
+      print('Generated ${allRecommendedBooks.length} recommended books');
+
+      // Store recommended books in Firestore
+      await _firestore.collection('users').doc(userId).update({
+        'recommendations': allRecommendedBooks,
+      });
+
+      print('Successfully stored recommended books in Firestore');
+
+    } catch (e) {
+      print('Error generating recommended books: $e');
+      rethrow;
+    }
+  }
+
+  // Get recommended books for a user
+  Future<List<Map<String, dynamic>>> getRecommendedBooks(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      final data = doc.data();
+      if (data != null && data['recommendations'] != null) {
+        return List<Map<String, dynamic>>.from(data['recommendations']);
+      }
+      return [];
+    } catch (e) {
+      print('Error getting recommended books: $e');
+      return [];
+    }
+  }
+
+  // Get most recent books for each category
+  Future<Map<String, List<Map<String, dynamic>>>> getMostRecentBooks(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      final data = doc.data();
+      if (data != null && data['readingList'] != null) {
+        final readingList = data['readingList'] as Map<String, dynamic>;
+        
+        Map<String, List<Map<String, dynamic>>> mostRecent = {
+          'wantToRead': [],
+          'currentlyReading': [],
+          'completed': [],
+        };
+        
+        // Get all books from each category
+        if (readingList['wantToRead'] != null) {
+          mostRecent['wantToRead'] = List<Map<String, dynamic>>.from(readingList['wantToRead']);
+        }
+        if (readingList['currentlyReading'] != null) {
+          mostRecent['currentlyReading'] = List<Map<String, dynamic>>.from(readingList['currentlyReading']);
+        }
+        if (readingList['completed'] != null) {
+          mostRecent['completed'] = List<Map<String, dynamic>>.from(readingList['completed']);
+        }
+        
+        return mostRecent;
+      }
+      return {
+        'wantToRead': [],
+        'currentlyReading': [],
+        'completed': [],
+      };
+    } catch (e) {
+      print('Error getting most recent books: $e');
+      return {
+        'wantToRead': [],
+        'currentlyReading': [],
+        'completed': [],
+      };
+    }
+  }
+
+  // Get all books from user's collection
+  Future<List<Map<String, dynamic>>> getUserBooks(String userId) async {
+    try {
+      final booksSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('books')
+          .get();
+      
+      return booksSnapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      print('Error getting user books: $e');
+      return [];
+    }
   }
 } 

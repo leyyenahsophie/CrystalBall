@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'colors.dart';
 
 class DiscussionBoardPage extends StatefulWidget {
   const DiscussionBoardPage({Key? key}) : super(key: key);
@@ -36,21 +37,6 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
       backgroundColor: const Color(0xFFACAAC7),
       body: Column(
         children: [
-          // Header
-          Container(
-            color: const Color(0xFFD3C9D1),
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            child: const Text(
-              'Crystal Ball',
-              style: TextStyle(
-                fontFamily: 'Island Moments',
-                fontSize: 36,
-                color: Color(0xFF3C3A79),
-              ),
-            ),
-          ),
-
           const SizedBox(height: 16),
           const Text(
             'Discussion Boards',

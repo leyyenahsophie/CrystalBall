@@ -2,6 +2,8 @@ import 'package:crystal_ball/colors.dart';
 import 'package:flutter/material.dart';
 import 'colors.dart';
 import 'api_service.dart';
+import 'database_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeScreenPage extends StatefulWidget {
   const HomeScreenPage({super.key});
@@ -14,7 +16,115 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
-  bool _isLoading = false;
+  Map<String, dynamic>? _selectedBook;
+  Map<String, List<Map<String, dynamic>>> _mostRecentBooks = {
+    'wantToRead': [],
+    'currentlyReading': [],
+    'completed': [],
+  };
+  List<Map<String, dynamic>> _recommendedBooks = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecommendedBooks();
+    _loadMostRecentBooks();
+  }
+
+  Future<void> _loadRecommendedBooks() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final books = await DatabaseService.instance.getRecommendedBooks(user.uid);
+        setState(() {
+          _recommendedBooks = books;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading recommended books: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMostRecentBooks() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final books = await DatabaseService.instance.getMostRecentBooks(user.uid);
+        setState(() {
+          _mostRecentBooks = books;
+        });
+      }
+    } catch (e) {
+      print('Error loading most recent books: $e');
+    }
+  }
+
+  void _showBookDetailsPopup(Map<String, dynamic> book) {
+    setState(() {
+      _selectedBook = book;
+    });
+  }
+
+  void _hideBookDetails() {
+    setState(() {
+      _selectedBook = null;
+    });
+  }
+
+  Future<void> _updateBookStatus(String status) async {
+    if (_selectedBook != null) {
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          setState(() {
+            _isLoading = true;
+          });
+          
+          await DatabaseService.instance.updateBookStatus(
+            user.uid,
+            _selectedBook!['title'],
+            status,
+          );
+          
+          // Reload books to reflect changes
+          await _loadRecommendedBooks();
+          await _loadMostRecentBooks();
+          
+          setState(() {
+            _isLoading = false;
+          });
+          
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Book status updated to: $status'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        print('Error updating book status: $e');
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to update book status'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   Future<void> _performSearch(String query) async {
     if (query.isEmpty) {
@@ -26,24 +136,108 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     }
 
     setState(() {
-      _isLoading = true;
       _isSearching = true;
     });
 
     try {
-      final results = await ApiService().searchBooks(query);
+      final apiService = ApiService();
+      final books = await apiService.searchBooks(query);
       setState(() {
-        _searchResults = results;
-        _isLoading = false;
+        _searchResults = books.map((book) => {
+          'title': book['title'] ?? '',
+          'author': book['author'] ?? '',
+          'description': book['description'] ?? '',
+          'imageUrl': book['imageUrl'] ?? '',
+          'genre': book['genre'] ?? [],
+          'publishedDate': book['publishedDate'] ?? '',
+        }).toList();
+        _isSearching = false;
       });
+
+      // Add books to user's collection
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        for (var book in _searchResults) {
+          await DatabaseService.instance.addBookToCollection(
+            user.uid,
+            book,
+          );
+        }
+      }
     } catch (e) {
-      print('Search error: $e');
+      print('Error searching books: $e');
+      setState(() {
+        _isSearching = false;
+      });
+    }
+  }
+
+  Future<void> _updateSearchResultStatus(Map<String, dynamic> book, String status) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        setState(() {
+          _isLoading = true;
+        });
+        
+        // Update the book's status in the search results
+        final index = _searchResults.indexWhere((b) => b['title'] == book['title']);
+        if (index != -1) {
+          setState(() {
+            _searchResults[index]['wantToRead'] = status == 'Want to Read';
+            _searchResults[index]['currentlyReading'] = status == 'Currently Reading';
+            _searchResults[index]['completed'] = status == 'Completed';
+          });
+        }
+
+        await DatabaseService.instance.updateBookStatus(
+          user.uid,
+          book['title'],
+          status,
+        );
+        
+        // Reload books to reflect changes
+        await _loadRecommendedBooks();
+        await _loadMostRecentBooks();
+        
+        setState(() {
+          _isLoading = false;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Book status updated to: $status'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error updating book status: $e');
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error performing search')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update book status'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _getCurrentStatus(Map<String, dynamic> book) {
+    if (book['completed'] == true) {
+      return 'Completed';
+    } else if (book['currentlyReading'] == true) {
+      return 'Currently Reading';
+    } else if (book['wantToRead'] == true) {
+      return 'Want to Read';
+    } else {
+      return 'Not Interested';
     }
   }
 
@@ -56,92 +250,47 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFACAAC7),
-      body: Column(
-        children: [
-          // Top bar
-          Container(
-            color: const Color(0xFFD3C9D1),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            width: double.infinity,
-            child: const Text(
-              'Crystal Ball',
-              style: TextStyle(
-                fontSize: 36,
-                color: Color(0xFF3C3A79),
-                fontFamily: 'Island Moments',
+      backgroundColor: Colors.grey[100],
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                _buildSearchBar(),
+          Expanded(
+                  child: _isSearching
+                      ? const Center(child: CircularProgressIndicator())
+                      : _searchResults.isNotEmpty
+                          ? _buildSearchResults()
+                          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                                  _sectionTitle("Most Recent Books"),
+                                  _buildCategorySection(
+                                    'Want to Read',
+                                    _mostRecentBooks['wantToRead'] ?? [],
+                                  ),
+                                  _buildCategorySection(
+                                    'Currently Reading',
+                                    _mostRecentBooks['currentlyReading'] ?? [],
+                                  ),
+                                  _buildCategorySection(
+                                    'Completed',
+                                    _mostRecentBooks['completed'] ?? [],
+                                  ),
+                                  _sectionTitle("Recommended Books"),
+                                  _buildRecommendedBooksGrid(),
+                ],
               ),
             ),
           ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search for books...',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF3C3A79)),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Color(0xFF3C3A79)),
-                        onPressed: () {
-                          _searchController.clear();
-                          _performSearch('');
-                        },
-                      )
-                    : null,
-              ),
-              onSubmitted: _performSearch,
+              ],
             ),
-          ),
-
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (_isSearching)
-            Expanded(
-              child: _searchResults.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No results found',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Color(0xFF3C3A79),
-                          fontFamily: 'Josefin Slab',
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        return _buildSearchResultCard(_searchResults[index]);
-                      },
-                    ),
-            )
-          else
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionTitle("Most Recent"),
-                    _bookGrid(['Book A', 'Book B', 'Book C']),
-                    const SizedBox(height: 20),
-                    _sectionTitle("Top Recommendations"),
-                    _bookGrid(['Book D', 'Book E', 'Book F', 'Book G']),
-                  ],
-                ),
-              ),
-            ),
-        ],
+            if (_selectedBook != null)
+              _buildBookDetailsPopup(_selectedBook!),
+          ],
+        ),
       ),
     );
   }
@@ -161,15 +310,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-  Widget _bookGrid(List<String> books) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: books.map((book) => _bookCard(book)).toList(),
-    );
-  }
-
-  Widget _bookCard(String title) {
+  Widget _buildBookCard(Map<String, dynamic> book) {
     return Container(
       width: 160,
       height: 200,
@@ -183,7 +324,11 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
           Align(
             alignment: Alignment.topLeft,
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+                  _selectedBook = book;
+                });
+              },
               icon: Icon(Icons.info_outline, size: 20, color: AppColors.textPrimary),
               style: IconButton.styleFrom(
                 backgroundColor: Colors.transparent,
@@ -191,28 +336,34 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: IconButton(
-              onPressed: () {
-                // Add your edit functionality here
-              },
-              icon: Icon(Icons.edit, size: 20, color: AppColors.textPrimary),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          ),
           Center(
-            child: Text(
-              title,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (book['imageUrl'] != null && book['imageUrl'].isNotEmpty)
+                  Image.network(
+                    book['imageUrl'],
+                    width: 80,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.book, size: 60),
+                  )
+                else
+                  const Icon(Icons.book, size: 60),
+                const SizedBox(height: 8),
+                Text(
+                  book['title'] ?? 'No Title',
               style: const TextStyle(
-                fontSize: 16,
+                    fontSize: 14,
                 color: Color(0xFF3C3A79),
                 fontFamily: 'Josefin Slab',
               ),
               textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -220,7 +371,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-  Widget _buildSearchResultCard(Map<String, dynamic> book) {
+  Widget _buildSearchResultCard(Map<String, dynamic> book, {bool showDropdown = false}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
@@ -301,45 +452,49 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           fontFamily: 'Josefin Slab',
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      // Reading Status Dropdown
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFACAAC7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: DropdownButton<String>(
-                          value: 'Want to Read',
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          style: const TextStyle(
-                            color: Color(0xFF3C3A79),
-                            fontSize: 16,
-                            fontFamily: 'Josefin Slab',
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Want to Read',
-                              child: Text('Want to Read'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Currently Reading',
-                              child: Text('Currently Reading'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Completed',
-                              child: Text('Completed'),
-                            ),
-                          ],
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              // TODO: Update book status in database
-                              print('Status changed to: $newValue');
-                            }
-                          },
-                        ),
-                      ),
+                      if (showDropdown) ...[
+                        const SizedBox(height: 16),
+                       Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFACAAC7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButton<String>(
+                  value: _getCurrentStatus(book),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  style: const TextStyle(
+                    color: Color(0xFF3C3A79),
+                    fontSize: 16,
+                    fontFamily: 'Josefin Slab',
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Want to Read',
+                      child: Text('Want to Read'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Currently Reading',
+                      child: Text('Currently Reading'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Completed',
+                      child: Text('Completed'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Not Interested',
+                      child: Text('Not Interested'),
+                    ),
+                  ],
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      _updateBookStatus(newValue);
+                    }
+                  },
+                ),
+              ),
+                      ],
                     ],
                   ),
                 ),
@@ -378,5 +533,264 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
       ),
     );
   }
-}
 
+    Widget _buildBookDetailsPopup(Map<String, dynamic> book) {
+    return Container(
+      color: Colors.black54,
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Book Details',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3C3A79),
+                      fontFamily: 'Josefin Slab',
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: _hideBookDetails,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (book['imageURL'] != null && book['imageURL'].isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        book['imageURL'],
+                        width: 120,
+                        height: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
+                              width: 120,
+                              height: 180,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.book, size: 60),
+                            ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 120,
+                      height: 180,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.book, size: 60),
+                    ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book['title'] ?? 'No Title',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Author: ${book['authors'] ?? 'Unknown'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Published: ${book['publishedDate'] ?? 'Unknown'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Genre: ${(book['categories'] as List?)?.join(', ') ?? 'Uncategorized'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (book['description'] != null && book['description'].isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Description:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF3C3A79),
+                        fontFamily: 'Josefin Slab',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      book['description'],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF3C3A79),
+                        fontFamily: 'Josefin Slab',
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFACAAC7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButton<String>(
+                  value: _getCurrentStatus(book),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  style: const TextStyle(
+                    color: Color(0xFF3C3A79),
+                    fontSize: 16,
+                    fontFamily: 'Josefin Slab',
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Want to Read',
+                      child: Text('Want to Read'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Currently Reading',
+                      child: Text('Currently Reading'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Completed',
+                      child: Text('Completed'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Not Interested',
+                      child: Text('Not Interested'),
+                    ),
+                  ],
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      _updateBookStatus(newValue);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search for books...',
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          prefixIcon: const Icon(Icons.search, color: Color(0xFF3C3A79)),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Color(0xFF3C3A79)),
+                  onPressed: () {
+                    _searchController.clear();
+                    _performSearch('');
+                  },
+                )
+              : null,
+        ),
+        onSubmitted: _performSearch,
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        return _buildSearchResultCard(_searchResults[index], showDropdown: true);
+      },
+    );
+  }
+
+  Widget _buildCategorySection(String title, List<Map<String, dynamic>> books) {
+    if (books.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: books.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: _buildBookCard(books[index]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecommendedBooksGrid() {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: _recommendedBooks.map((book) => _buildBookCard(book)).toList(),
+    );
+  }
+}
