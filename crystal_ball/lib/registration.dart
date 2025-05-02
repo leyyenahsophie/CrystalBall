@@ -194,42 +194,56 @@ class _RegisterFormState extends State<RegisterForm> {
           ),
           const SizedBox(height: 10),
 
-          // Centered genre checkboxes using Row + Flexible
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // Genre grid with consistent spacing
+          Wrap(
+            spacing: 20,
+            runSpacing: 20,
+            alignment: WrapAlignment.center,
             children: [
-              Flexible(
-                child: FormBuilderCheckboxGroup<String>(
-                  name: 'genres',
-                  wrapDirection: Axis.horizontal,
-                  wrapSpacing: 3,
-                  validator: FormBuilderValidators.minLength(1),
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  options: [
-                    for (final genre in [
-                      'ART',
-                      'BIOGRAPHY',
-                      'FICTION',
-                      'NONFICTION',
-                      'GRAPHIC NOVELS',
-                      'ROMANCE',
-                      'MYSTERY',
-                      'THRILLER',
-                    ])
-                      FormBuilderFieldOption(
-                        value: genre,
+              for (final genre in [
+                'ART',
+                'BIOGRAPHY',
+                'FICTION',
+                'NONFICTION',
+                'GRAPHIC NOVELS',
+                'ROMANCE',
+                'MYSTERY',
+                'THRILLER',
+              ])
+                Container(
+                  width: 200, // Fixed width for consistent spacing
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xA33C3A79),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FormBuilderField<bool>(
+                        name: genre,
+                        builder: (field) => Checkbox(
+                          value: field.value ?? false,
+                          onChanged: (val) => field.didChange(val),
+                          side: const BorderSide(color: Colors.white),
+                          checkColor: Colors.white,
+                          activeColor: const Color(0xFF3C3A79),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
                         child: Text(
                           genre,
                           style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF3C3A79),
+                            color: Colors.white,
+                            fontSize: 18,
                             fontFamily: 'Sedan SC',
                           ),
                         ),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
 

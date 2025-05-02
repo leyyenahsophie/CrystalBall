@@ -261,6 +261,9 @@ Future<void> changeDisplayName(String userId, String newName) async{
           'currentlyReading': false,
           'completed': false,
         });
+
+        // Add to discussion boards
+        await addBookToDiscussionBoards(book['title'], book);
       }
     } catch (e) {
       print('Error adding book to collection: $e');
@@ -403,6 +406,121 @@ Future<void> changeDisplayName(String userId, String newName) async{
     } catch (e) {
       print('Error getting user books: $e');
       return [];
+    }
+  }
+
+  // Add a book to discussion boards
+  Future<void> addBookToDiscussionBoards(String bookTitle, Map<String, dynamic> bookData) async {
+    try {
+      // Check if discussion board already exists
+      final boardDoc = await _firestore
+          .collection('discussionBoards')
+          .doc(bookTitle)
+          .get();
+
+      if (!boardDoc.exists) {
+        // Create new discussion board
+        await _firestore
+            .collection('discussionBoards')
+            .doc(bookTitle)
+            .set({
+          'title': bookTitle,
+          'createdAt': FieldValue.serverTimestamp(),
+          'bookData': bookData,
+        });
+      }
+    } catch (e) {
+      print('Error adding book to discussion boards: $e');
+      rethrow;
+    }
+  }
+
+  // Join a discussion board
+  Future<void> joinDiscussionBoard(String userId, String boardTitle) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('myBoards')
+          .doc(boardTitle)
+          .set({
+        'title': boardTitle,
+        'joinedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error joining discussion board: $e');
+      rethrow;
+    }
+  }
+
+  // Leave a discussion board
+  Future<void> leaveDiscussionBoard(String userId, String boardTitle) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('myBoards')
+          .doc(boardTitle)
+          .delete();
+    } catch (e) {
+      print('Error leaving discussion board: $e');
+      rethrow;
+    }
+  }
+
+  // Get user's discussion boards
+  Future<List<String>> getUserBoards(String userId) async {
+    try {
+      final boardsSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('myBoards')
+          .get();
+      
+      return boardsSnapshot.docs.map((doc) => doc['title'] as String).toList();
+    } catch (e) {
+      print('Error getting user boards: $e');
+      return [];
+    }
+  }
+
+  // Get all discussion boards
+  Future<List<Map<String, dynamic>>> getAllDiscussionBoards() async {
+    try {
+      final boardsSnapshot = await _firestore
+          .collection('discussionBoards')
+          .get();
+      
+      return boardsSnapshot.docs.map((doc) => {
+        'title': doc.id,
+        ...doc.data(),
+      }).toList();
+    } catch (e) {
+      print('Error getting all discussion boards: $e');
+      return [];
+    }
+  }
+
+  // Add message to discussion board
+  Future<void> addMessageToBoard(String boardTitle, String userId, String message) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+      final displayName = userData?['displayName'] ?? 'Anonymous';
+
+      await _firestore
+          .collection('discussionBoards')
+          .doc(boardTitle)
+          .collection('messages')
+          .add({
+        'text': message,
+        'userId': userId,
+        'userName': displayName,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding message to board: $e');
+      rethrow;
     }
   }
 } 

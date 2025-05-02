@@ -143,37 +143,43 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFE4D3EC),
       body: Center(
-        child: Container(
-          width: 853,
-          height: 1094,
-          decoration: const BoxDecoration(color: Color(0xFFE3D3EB)),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 214,
-                top: 28,
-                child: SizedBox(
-                  width: 275,
-                  height: 74,
-                  child: Text(
-                    'Crystal Ball',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: const Color(0xFF3C3A79),
-                      fontSize: 36,
-                      fontFamily: 'Island Moments',
-                      fontWeight: FontWeight.w400,
-                    ),
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            margin: const EdgeInsets.all(24),
+            width: 600,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5E9F0),
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 10,
+                  offset: const Offset(4, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: BackButton(),
+                ),
+                const Text(
+                  'Crystal Ball',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontFamily: 'Island Moments',
+                    color: Color(0xFF3C3A79),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 260,
-                top: 180,
-                child: EmailPasswordForm(auth: FirebaseAuth.instance),
-              ),
-            ],
+                const SizedBox(height: 40),
+                EmailPasswordForm(auth: FirebaseAuth.instance),
+              ],
+            ),
           ),
         ),
       ),
@@ -345,6 +351,17 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
     }
   }
 
+  InputDecoration _inputDecoration(String hint) => InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFACAAC7),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -352,78 +369,66 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Text(
-            'Email',
-            style: TextStyle(
-              color: Color(0xFF3C3A79),
-              fontSize: 36,
-              fontFamily: 'Josefin Slab',
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: 315,
-            height: 76,
-            decoration: BoxDecoration(
-              color: const Color(0xA33C3A79),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: TextFormField(
-              controller: _emailController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Enter email',
-                hintStyle: TextStyle(color: Colors.white54),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 20),
+          // Email + Password row
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Email',
+                        style: TextStyle(
+                            fontSize: 22,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab')),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: _inputDecoration('Enter your email'),
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
-              validator: (value) {
-                if (value?.isEmpty ?? true) {
-                  return 'Please enter some text';
-                }
-                return null;
-              },
-            ),
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            'Password',
-            style: TextStyle(
-              color: Color(0xFF3C3A79),
-              fontSize: 36,
-              fontFamily: 'Josefin Slab',
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: 315,
-            height: 76,
-            decoration: BoxDecoration(
-              color: const Color(0xA33C3A79),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Enter password',
-                hintStyle: TextStyle(color: Colors.white54),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Password',
+                        style: TextStyle(
+                            fontSize: 22,
+                            color: Color(0xFF3C3A79),
+                            fontFamily: 'Josefin Slab')),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: _inputDecoration('Enter your password'),
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
-              validator: (value) {
-                if (value?.isEmpty ?? true) {
-                  return 'Please enter some text';
-                }
-                return null;
-              },
-            ),
+            ],
           ),
+
           const SizedBox(height: 40),
+
+          // Login button
           SizedBox(
-            width: 261,
-            height: 55,
+            width: 180,
+            height: 50,
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -439,14 +444,17 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
               child: const Text(
                 'Login',
                 style: TextStyle(
+                  fontSize: 20,
                   color: Color(0xFF3C3A79),
-                  fontSize: 28,
                   fontFamily: 'Josefin Slab',
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 40),
+
+          const SizedBox(height: 20),
+
+          // Register link
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -470,19 +478,29 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
               ),
             ),
           ),
-          Container(
-            alignment: Alignment.center,
-            child: Text(
-              _initialState
-                  ? 'Please Login'
-                  : _success
-                  ? 'Successfully logged in $_userEmail'
-                  : 'Login failed',
-              style: TextStyle(color: _success ? Colors.green : Colors.red),
+
+          if (!_initialState)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                _success
+                    ? 'Successfully logged in $_userEmail'
+                    : 'Login failed',
+                style: TextStyle(
+                  color: _success ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
