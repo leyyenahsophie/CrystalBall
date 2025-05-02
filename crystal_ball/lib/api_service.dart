@@ -46,7 +46,7 @@ class ApiService {
 
         books.add(addBook);
       }
-      
+
       return books;
     } else {
       throw Exception('Failed to load $genre books');
@@ -110,6 +110,7 @@ class Book{
   final List<String> genre;
   final String publishedDate;
   final bool isRead;
+  final bool currentlyReading;
 
   Book({
     required this.title,
@@ -119,6 +120,7 @@ class Book{
     required this.genre,
     required this.publishedDate,
     this.isRead = false,
+    this.currentlyReading = false,
   });
 
   bool isCategory(Book bookId, String g){

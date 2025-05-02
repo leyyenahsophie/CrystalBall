@@ -4,6 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'colors.dart';
 import 'main.dart';
+import 'database_service.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -73,16 +74,39 @@ class _RegisterFormState extends State<RegisterForm> {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       try {
         final data = _formKey.currentState!.value;
-        await widget.auth.createUserWithEmailAndPassword(
-          email: data['email'],
-          password: data['password'],
+        final uid = await DatabaseService.instance.addLogin(
+          data['email'],
+          data['password'],
         );
-        setState(() {
-          _success = true;
-          _initial = false;
-          _userEmail = data['email'];
-        });
+        
+        if (uid != null) {
+          // Add selected genres to user document
+          final selectedGenres = (data['genres'] as List<dynamic>?)?.cast<String>() ?? [];
+          for (final genre in selectedGenres) {
+            await DatabaseService.instance.addGenres(uid, genre);
+          }
+          
+          setState(() {
+            _success = true;
+            _initial = false;
+            _userEmail = data['email'];
+          });
+          
+          // Navigate to login page on success
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          }
+        } else {
+          setState(() {
+            _success = false;
+            _initial = false;
+          });
+        }
       } catch (e) {
+        print('Registration error: $e');
         setState(() {
           _success = false;
           _initial = false;

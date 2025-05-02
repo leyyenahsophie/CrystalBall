@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'api_service.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._internal();
@@ -33,9 +35,14 @@ class DatabaseService {
       );
       
       final uid = userCredential.user?.uid;
+      
+      if (uid == null) {
+        print('Error: User created but UID is null');
+        return null;
+      }
 
       // Store additional user data in Firestore
-      await _firestore.collection('users').doc(userCredential.user?.uid).set({
+      await _firestore.collection('users').doc(uid).set({
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
         'displayName': email,
@@ -173,25 +180,6 @@ Future<void> changeDisplayName(String userId, String newName) async{
     }
   }
 
-  Future<void> deleteTask(String taskId) async {
-    try {
-      await _firestore.collection('tasks').doc(taskId).delete();
-    } catch (e) {
-      print('Error deleting task: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> toggleTaskCompletion(String taskId, bool isCompleted) async {
-    try {
-      await _firestore.collection('tasks').doc(taskId).update({
-        'isCompleted': isCompleted,
-      });
-    } catch (e) {
-      print('Error toggling task: $e');
-      rethrow;
-    }
-  }
 
   Stream<QuerySnapshot> getTasks(String userId) {
     return _firestore

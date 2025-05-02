@@ -13,6 +13,7 @@ import 'registration.dart';
 import 'profile.dart';
 import 'reading_list.dart';
 import 'discussion_boards.dart';
+import 'homescreen.dart';
 
 
 void main() async {
@@ -234,27 +235,13 @@ class _LoggedInPageState extends State<LoggedInPage> {
         },
         children: [
           // Home Page
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Hi ${user?.email}, you are logged in',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
+          const HomeScreenPage(),
           // Profile Page
           Center(
             child: ProfilePage(
-  currentEmail: user?.email ?? '',
-  currentName: user?.email ?? '',
-),
+              currentEmail: user?.email ?? '',
+              currentName: user?.email ?? '',
+            ),
           ),
           // Settings Page
           Center(
@@ -297,7 +284,7 @@ class _LoggedInPageState extends State<LoggedInPage> {
             title: const Text("Reading List"),
             activeColor: const Color(0xFF495867),
           ),
-                    BottomNavyBarItem(
+          BottomNavyBarItem(
             icon: const Icon(Icons.settings),
             title: const Text("Discussion Board"),
             activeColor: const Color(0xFF495867),
