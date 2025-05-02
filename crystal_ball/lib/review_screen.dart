@@ -1,6 +1,7 @@
-//only accessible if user clicks on write a review button
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'database_service.dart'; // adjust path as needed
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({super.key});
@@ -13,29 +14,68 @@ class _ReviewPageState extends State<ReviewPage> {
   final bookNameController = TextEditingController();
   final reviewController = TextEditingController();
   int rating = 0;
+  List<Map<String, dynamic>> userReviews = [];
 
-  void submitReview() {
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserReviews();
+  }
+
+  Future<void> fetchUserReviews() async {
+    if (currentUser == null) return;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('bookReviews')
+        .where('userId', isEqualTo: currentUser!.uid)
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    setState(() {
+      userReviews = snapshot.docs.map((doc) => doc.data()).toList();
+    });
+  }
+
+  Future<void> submitReview() async {
     final name = bookNameController.text.trim();
     final review = reviewController.text.trim();
 
-    if (name.isEmpty || review.isEmpty || rating == 0) {
+    if (name.isEmpty || review.isEmpty || rating == 0 || currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all fields and rating!')),
       );
       return;
     }
 
-    // You could send to Firebase here
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Submitted: $name\nRating: $rating\nReview: $review'),
-        duration: const Duration(seconds: 2),
-      ),
+    final newReview = {
+      'bookTitle': name,
+      'userId': currentUser!.uid,
+      'review': review,
+      'rating': rating,
+      'timestamp': Timestamp.now(),
+    };
+
+    DatabaseService.instance.createReviews(
+      currentUser!.uid,
+      review,
+      "User Review",
+      name,
+      rating,
     );
 
     bookNameController.clear();
     reviewController.clear();
-    setState(() => rating = 0);
+
+    setState(() {
+      rating = 0;
+      userReviews.insert(0, newReview);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Review submitted!')),
+    );
   }
 
   Widget buildStar(int starIndex) {
@@ -56,6 +96,7 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 30),
             const Text(
@@ -68,7 +109,6 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
             const SizedBox(height: 30),
 
-            // Book name input
             TextField(
               controller: bookNameController,
               decoration: InputDecoration(
@@ -84,14 +124,12 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
             const SizedBox(height: 30),
 
-            // Star rating
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) => buildStar(index + 1)),
             ),
             const SizedBox(height: 30),
 
-            // Review text
             TextField(
               controller: reviewController,
               maxLines: 5,
@@ -109,7 +147,6 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
             const SizedBox(height: 40),
 
-            // Submit button
             ElevatedButton(
               onPressed: submitReview,
               style: ElevatedButton.styleFrom(
@@ -130,6 +167,34 @@ class _ReviewPageState extends State<ReviewPage> {
             ),
 
             const SizedBox(height: 50),
+            const Text(
+              'Your Past Reviews',
+              style: TextStyle(
+                fontSize: 26,
+                fontFamily: 'Josefin Slab',
+                color: Color(0xFF3C3A79),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ...userReviews.map((review) => Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              color: const Color(0xFFAEA7C4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              child: ListTile(
+                title: Text(
+                  review['bookTitle'] ?? '',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(review['review'] ?? ''),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    review['rating'] ?? 0,
+                    (_) => const Icon(Icons.star, color: Colors.amber, size: 16),
+                  ),
+                ),
+              ),
+            )),
           ],
         ),
       ),
