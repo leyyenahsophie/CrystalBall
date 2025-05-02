@@ -4,6 +4,7 @@ import 'colors.dart';
 import 'api_service.dart';
 import 'database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreenPage extends StatefulWidget {
   const HomeScreenPage({super.key});
@@ -254,16 +255,38 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
           children: [
             Column(
               children: [
+                // Welcome Greeting
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser?.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      final displayName = snapshot.data?['displayName'] ?? 'Reader';
+                      return Text(
+                        'Welcome, $displayName',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          color: Color(0xFF3C3A79),
+                          fontFamily: 'Josefin Slab',
+                          shadows: [Shadow(offset: Offset(0, 2), blurRadius: 2, color: Colors.black26)],
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 _buildSearchBar(),
-          Expanded(
+                Expanded(
                   child: _isSearching
                       ? const Center(child: CircularProgressIndicator())
                       : _searchResults.isNotEmpty
                           ? _buildSearchResults()
                           : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   _sectionTitle("Most Recent Books"),
                                   _buildCategorySection(
                                     'Want to Read',
@@ -279,15 +302,15 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                                   ),
                                   _sectionTitle("Recommended Books"),
                                   _buildRecommendedBooksGrid(),
-                ],
-              ),
-            ),
-          ),
+                                ],
+                              ),
+                            ),
+                ),
               ],
             ),
             if (_selectedBook != null)
               _buildBookDetailsPopup(_selectedBook!),
-        ],
+          ],
         ),
       ),
     );

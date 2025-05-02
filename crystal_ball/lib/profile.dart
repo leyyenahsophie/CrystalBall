@@ -159,6 +159,17 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    // Create initial values map for the form
+    final initialValues = {
+      'email': userData?['email'] ?? '',
+      'name': userData?['displayName'] ?? '',
+    };
+    
+    // Add genre checkboxes initial values
+    for (String genre in genres) {
+      initialValues[genre] = selectedGenres.contains(genre);
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFE4D3EC),
       body: Center(
@@ -192,12 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 40),
                 FormBuilder(
                   key: _formKey,
-                  initialValue: {
-                    'email': userData?['email'] ?? '',
-                    'name': userData?['displayName'] ?? '',
-                    for (String genre in genres)
-                      genre: selectedGenres.contains(genre),
-                  },
+                  initialValue: initialValues,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
