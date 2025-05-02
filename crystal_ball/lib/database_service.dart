@@ -273,7 +273,13 @@ Future<void> changeDisplayName(String userId, String newName) async{
 
   Future<void> generateRecommendedBooks(String userId) async {
     try {
-      final List<String> genres = [
+      // Get user's selected genres
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+      final List<String> userGenres = List<String>.from(userData?['genres'] ?? []);
+      
+      // If user has no genres, use default genres
+      final List<String> genres = userGenres.isNotEmpty ? userGenres : [
         'art',
         'biography',
         'fiction',
@@ -285,13 +291,13 @@ Future<void> changeDisplayName(String userId, String newName) async{
       ];
 
       List<Map<String, dynamic>> allRecommendedBooks = [];
+      final random = Random();
 
       for (String genre in genres) {
         try {
           final books = await ApiService.fetchBooks(genre);
           if (books.isNotEmpty) {
             // Randomly select 2 books from the genre
-            final random = Random();
             final selectedBooks = books.length >= 2 
                 ? List.generate(2, (_) => books[random.nextInt(books.length)])
                 : books;
@@ -321,6 +327,11 @@ Future<void> changeDisplayName(String userId, String newName) async{
         }
       }
 
+      // Limit to 10 books
+      if (allRecommendedBooks.length > 10) {
+        allRecommendedBooks = allRecommendedBooks.take(10).toList();
+      }
+
       print('Generated ${allRecommendedBooks.length} recommended books');
 
       // Store recommended books in Firestore
@@ -339,12 +350,28 @@ Future<void> changeDisplayName(String userId, String newName) async{
   // Get recommended books for a user
   Future<List<Map<String, dynamic>>> getRecommendedBooks(String userId) async {
     try {
+      print('Fetching recommendations for user: $userId');
       final doc = await _firestore.collection('users').doc(userId).get();
-      final data = doc.data();
-      if (data != null && data['recommendations'] != null) {
-        return List<Map<String, dynamic>>.from(data['recommendations']);
+      
+      if (!doc.exists) {
+        print('User document does not exist');
+        return [];
       }
-      return [];
+      
+      final data = doc.data();
+      if (data == null) {
+        print('User data is null');
+        return [];
+      }
+      
+      if (data['recommendations'] == null) {
+        print('No recommendations field found');
+        return [];
+      }
+      
+      final recommendations = List<Map<String, dynamic>>.from(data['recommendations']);
+      print('Retrieved ${recommendations.length} recommended books');
+      return recommendations;
     } catch (e) {
       print('Error getting recommended books: $e');
       return [];

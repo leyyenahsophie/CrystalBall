@@ -37,7 +37,13 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        setState(() {
+          _isLoading = true;
+        });
+        
         final books = await DatabaseService.instance.getRecommendedBooks(user.uid);
+        print('Loaded ${books.length} recommended books in homescreen');
+        
         setState(() {
           _recommendedBooks = books;
           _isLoading = false;
@@ -287,19 +293,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _sectionTitle("Most Recent Books"),
-                                  _buildCategorySection(
-                                    'Want to Read',
-                                    _mostRecentBooks['wantToRead'] ?? [],
-                                  ),
-                                  _buildCategorySection(
-                                    'Currently Reading',
-                                    _mostRecentBooks['currentlyReading'] ?? [],
-                                  ),
-                                  _buildCategorySection(
-                                    'Completed',
-                                    _mostRecentBooks['completed'] ?? [],
-                                  ),
+                                  _sectionTitle("Recent Activity"),
+                                  _buildCombinedBooksSection(),
                                   _sectionTitle("Recommended Books"),
                                   _buildRecommendedBooksGrid(),
                                 ],
@@ -773,41 +768,77 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-  Widget _buildCategorySection(String title, List<Map<String, dynamic>> books) {
-    if (books.isEmpty) return const SizedBox.shrink();
+  Widget _buildCombinedBooksSection() {
+    // Combine all books into a single list
+    List<Map<String, dynamic>> allBooks = [];
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    // Add completed books
+    allBooks.addAll(_mostRecentBooks['completed'] ?? []);
+    // Add currently reading books
+    allBooks.addAll(_mostRecentBooks['currentlyReading'] ?? []);
+    // Add want to read books
+    allBooks.addAll(_mostRecentBooks['wantToRead'] ?? []);
+    
+    // Sort by timestamp if available, otherwise keep original order
+    allBooks.sort((a, b) {
+      final aTime = a['timestamp'] ?? 0;
+      final bTime = b['timestamp'] ?? 0;
+      return bTime.compareTo(aTime);
+    });
+    
+    // Take only the first 3 books
+    allBooks = allBooks.take(3).toList();
+    
+    if (allBooks.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'No recent activity',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF3C3A79),
+            fontFamily: 'Josefin Slab',
           ),
         ),
-        SizedBox(
-          height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: books.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: _buildBookCard(books[index]),
-              );
-            },
-          ),
-        ),
-      ],
+      );
+    }
+    
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: allBooks.length,
+        itemBuilder: (context, index) {
+          final book = allBooks[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildBookCard(book),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildRecommendedBooksGrid() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (_recommendedBooks.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'No recommended books available',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF3C3A79),
+            fontFamily: 'Josefin Slab',
+          ),
+        ),
+      );
+    }
+    
     return Wrap(
       spacing: 16,
       runSpacing: 16,

@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'database_service.dart'; // adjust if needed
+import 'database_service.dart';
 
 class ProfilePage extends StatefulWidget {
   final String currentEmail;
@@ -49,9 +49,13 @@ class _ProfilePageState extends State<ProfilePage> {
       if (user != null) {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (doc.exists) {
+          final data = doc.data();
           setState(() {
-            userData = doc.data();
-            selectedGenres = Set<String>.from(userData?['genres'] ?? []);
+            userData = data;
+            // Convert genres to uppercase and ensure they match the UI format
+            final genresList = (data?['genres'] as List<dynamic>?)?.map((g) => g.toString().toUpperCase()) ?? [];
+            selectedGenres = Set<String>.from(genresList);
+            print('Loaded genres: $selectedGenres'); // Debug print
             isLoading = false;
           });
         }
@@ -113,17 +117,17 @@ class _ProfilePageState extends State<ProfilePage> {
             genres.where((genre) => values[genre] == true)
           );
 
-          if (newSelectedGenres != selectedGenres) {
-            // Remove genres that were unselected
-            for (String genre in selectedGenres.difference(newSelectedGenres)) {
-              await db.removeGenres(userId, genre);
-            }
-            // Add newly selected genres
-            for (String genre in newSelectedGenres.difference(selectedGenres)) {
-              await db.addGenres(userId, genre);
-            }
-            hasChanges = true;
-          }
+          // Update genres in Firestore directly
+          await FirebaseFirestore.instance.collection('users').doc(userId).update({
+            'genres': newSelectedGenres.toList(),
+          });
+          
+          // Update local state
+          setState(() {
+            selectedGenres = newSelectedGenres;
+          });
+          
+          hasChanges = true;
 
           if (hasChanges) {
             await _loadUserData();
@@ -159,13 +163,12 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Create initial values map for the form
     final initialValues = {
       'email': userData?['email'] ?? '',
       'name': userData?['displayName'] ?? '',
     };
     
-    // Add genre checkboxes initial values
+    // Initialize checkbox values based on selectedGenres
     for (String genre in genres) {
       initialValues[genre] = selectedGenres.contains(genre);
     }
@@ -286,9 +289,19 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 FormBuilderField<bool>(
                                   name: genre,
+                                  initialValue: selectedGenres.contains(genre),
                                   builder: (field) => Checkbox(
                                     value: field.value ?? false,
-                                    onChanged: (val) => field.didChange(val),
+                                    onChanged: (val) {
+                                      field.didChange(val);
+                                      setState(() {
+                                        if (val == true) {
+                                          selectedGenres.add(genre);
+                                        } else {
+                                          selectedGenres.remove(genre);
+                                        }
+                                      });
+                                    },
                                     side: const BorderSide(color: Colors.white),
                                     checkColor: Colors.white,
                                     activeColor: const Color(0xFF3C3A79),
