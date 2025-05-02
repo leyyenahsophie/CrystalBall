@@ -184,9 +184,12 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
         final index = _searchResults.indexWhere((b) => b['title'] == book['title']);
         if (index != -1) {
           setState(() {
-            _searchResults[index]['wantToRead'] = status == 'Want to Read';
-            _searchResults[index]['currentlyReading'] = status == 'Currently Reading';
-            _searchResults[index]['completed'] = status == 'Completed';
+            _searchResults[index] = {
+              ..._searchResults[index],
+              'wantToRead': status == 'Want to Read',
+              'currentlyReading': status == 'Currently Reading',
+              'completed': status == 'Completed',
+            };
           });
         }
 
@@ -230,15 +233,10 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   }
 
   String _getCurrentStatus(Map<String, dynamic> book) {
-    if (book['completed'] == true) {
-      return 'Completed';
-    } else if (book['currentlyReading'] == true) {
-      return 'Currently Reading';
-    } else if (book['wantToRead'] == true) {
-      return 'Want to Read';
-    } else {
-      return 'Not Interested';
-    }
+    if (book['completed'] == true) return 'Completed';
+    if (book['currentlyReading'] == true) return 'Currently Reading';
+    if (book['wantToRead'] == true) return 'Want to Read';
+    return 'Not Interested';
   }
 
   @override
@@ -289,7 +287,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
             ),
             if (_selectedBook != null)
               _buildBookDetailsPopup(_selectedBook!),
-          ],
+        ],
         ),
       ),
     );
@@ -454,46 +452,46 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                       ),
                       if (showDropdown) ...[
                         const SizedBox(height: 16),
-                       Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFACAAC7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButton<String>(
-                  value: _getCurrentStatus(book),
-                  isExpanded: true,
-                  underline: const SizedBox(),
-                  style: const TextStyle(
-                    color: Color(0xFF3C3A79),
-                    fontSize: 16,
-                    fontFamily: 'Josefin Slab',
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Want to Read',
-                      child: Text('Want to Read'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Currently Reading',
-                      child: Text('Currently Reading'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Completed',
-                      child: Text('Completed'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Not Interested',
-                      child: Text('Not Interested'),
-                    ),
-                  ],
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      _updateBookStatus(newValue);
-                    }
-                  },
-                ),
-              ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFACAAC7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: DropdownButton<String>(
+                            value: _getCurrentStatus(book),
+                            isExpanded: true,
+                            underline: const SizedBox(),
+                            style: const TextStyle(
+                              color: Color(0xFF3C3A79),
+                              fontSize: 16,
+                              fontFamily: 'Josefin Slab',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Want to Read',
+                                child: Text('Want to Read'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Currently Reading',
+                                child: Text('Currently Reading'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Completed',
+                                child: Text('Completed'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Not Interested',
+                                child: Text('Not Interested'),
+                              ),
+                            ],
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                _updateSearchResultStatus(book, newValue);
+                              }
+                            },
+                          ),
+                        ),
                       ],
                     ],
                   ),
