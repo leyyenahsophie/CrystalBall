@@ -142,7 +142,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFACAAC7),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const SizedBox(height: 16),
@@ -150,7 +150,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
             'Discussion Boards',
             style: TextStyle(
               fontSize: 32,
-              color: Color(0xFF3C3A79),
+              color: AppColors.textPrimary,
               fontFamily: 'Josefin Slab',
             ),
           ),
@@ -163,15 +163,15 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
               decoration: InputDecoration(
                 hintText: 'Search for books...',
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: AppColors.secondary,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF3C3A79)),
+                prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Color(0xFF3C3A79)),
+                        icon: const Icon(Icons.clear, color: AppColors.textPrimary),
                         onPressed: () {
                           _searchController.clear();
                           _performSearch('');
@@ -224,11 +224,11 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                             height: 120,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD9D9D9),
+                              color: AppColors.secondary,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: selectedBoard == board
-                                    ? const Color(0xFF3C3A79)
+                                    ? AppColors.accent1
                                     : Colors.transparent,
                                 width: 2,
                               ),
@@ -239,7 +239,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                               style: const TextStyle(
                                 fontFamily: 'Josefin Slab',
                                 fontSize: 14,
-                                color: Color(0xFF3C3A79),
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -255,7 +255,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                       style: const TextStyle(
                         fontSize: 26,
                         fontFamily: 'Josefin Slab',
-                        color: Color(0xFF3C3A79),
+                        color: AppColors.textPrimary,
                       ),
                     ),
 
@@ -265,7 +265,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                         margin: const EdgeInsets.all(20),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD9D9D9),
+                          color: AppColors.secondary,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: StreamBuilder<QuerySnapshot>(
@@ -286,14 +286,14 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                                 final msg = docs[index];
                                 return ListTile(
                                   leading: const CircleAvatar(
-                                    backgroundColor: Color(0xFFACAAC7),
-                                    child: Icon(Icons.person, color: Colors.white),
+                                    backgroundColor: AppColors.secondary,
+                                    child: Icon(Icons.person, color: AppColors.textPrimary),
                                   ),
                                   title: Text(
                                     msg['userName'] ?? 'Anonymous',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF3C3A79),
+                                      color: AppColors.textPrimary,
                                       fontFamily: 'Josefin Slab',
                                     ),
                                   ),
@@ -303,7 +303,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                                       Text(
                                         msg['text'] ?? '',
                                         style: const TextStyle(
-                                          color: Color(0xFF3C3A79),
+                                          color: AppColors.textPrimary,
                                           fontFamily: 'Josefin Slab',
                                         ),
                                       ),
@@ -338,7 +338,7 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                               decoration: InputDecoration(
                                 hintText: 'Type a message...',
                                 filled: true,
-                                fillColor: const Color(0xFFD3C9D1),
+                                fillColor: AppColors.secondary,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -349,11 +349,11 @@ class _DiscussionBoardPageState extends State<DiscussionBoardPage> {
                           ElevatedButton(
                             onPressed: sendMessage,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5B5B5B),
+                              backgroundColor: AppColors.accent1,
                               shape: const CircleBorder(),
                               padding: const EdgeInsets.all(16),
                             ),
-                            child: const Icon(Icons.send, color: Colors.white),
+                            child: const Icon(Icons.send, color: AppColors.textSecondary),
                           ),
                         ],
                       ),

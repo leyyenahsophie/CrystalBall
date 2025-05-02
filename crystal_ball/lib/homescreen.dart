@@ -255,7 +255,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.homePageBkg,
       body: SafeArea(
         child: Stack(
           children: [
@@ -275,7 +275,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         'Welcome, $displayName',
                         style: const TextStyle(
                           fontSize: 28,
-                          color: Color(0xFF3C3A79),
+                          color: AppColors.textPrimary,
                           fontFamily: 'Josefin Slab',
                           shadows: [Shadow(offset: Offset(0, 2), blurRadius: 2, color: Colors.black26)],
                         ),
@@ -318,7 +318,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
         title,
         style: const TextStyle(
           fontSize: 26,
-          color: Color(0xFF3C3A79),
+          color: AppColors.textPrimary,
           fontFamily: 'Josefin Slab',
           shadows: [Shadow(offset: Offset(0, 2), blurRadius: 2, color: Colors.black26)],
         ),
@@ -332,7 +332,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
       height: 200,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9D9D9),
+        color: AppColors.accent3,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Stack(
@@ -345,7 +345,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                   _selectedBook = book;
                 });
               },
-              icon: Icon(Icons.info_outline, size: 20, color: AppColors.textPrimary),
+              icon: const Icon(Icons.info_outline, size: 20, color: AppColors.textPrimary),
               style: IconButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -363,19 +363,19 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     height: 120,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.book, size: 60),
+                        const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                   )
                 else
-                  const Icon(Icons.book, size: 60),
+                  const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                 const SizedBox(height: 8),
                 Text(
                   book['title'] ?? 'No Title',
-              style: const TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                color: Color(0xFF3C3A79),
-                fontFamily: 'Josefin Slab',
-              ),
-              textAlign: TextAlign.center,
+                    color: AppColors.textPrimary,
+                    fontFamily: 'Josefin Slab',
+                  ),
+                  textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -401,7 +401,6 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Book Image
                 if (book['imageURL'] != null && book['imageURL'].isNotEmpty)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -414,8 +413,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           Container(
                             width: 120,
                             height: 180,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.book, size: 60),
+                            color: AppColors.accent3,
+                            child: const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                           ),
                     ),
                   )
@@ -423,11 +422,10 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                   Container(
                     width: 120,
                     height: 180,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.book, size: 60),
+                    color: AppColors.accent3,
+                    child: const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                   ),
                 const SizedBox(width: 16),
-                // Book Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,7 +435,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF3C3A79),
+                          color: AppColors.textPrimary,
                           fontFamily: 'Josefin Slab',
                         ),
                       ),
@@ -446,7 +444,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         'Author: ${book['authors'] ?? 'Unknown'}',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF3C3A79),
+                          color: AppColors.textPrimary,
                           fontFamily: 'Josefin Slab',
                         ),
                       ),
@@ -455,7 +453,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         'Published: ${book['publishedDate'] ?? 'Unknown'}',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF3C3A79),
+                          color: AppColors.textPrimary,
                           fontFamily: 'Josefin Slab',
                         ),
                       ),
@@ -464,7 +462,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         'Genre: ${(book['categories'] as List?)?.join(', ') ?? 'Uncategorized'}',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF3C3A79),
+                          color: AppColors.textPrimary,
                           fontFamily: 'Josefin Slab',
                         ),
                       ),
@@ -473,7 +471,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFACAAC7),
+                            color: AppColors.secondary,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButton<String>(
@@ -481,7 +479,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             isExpanded: true,
                             underline: const SizedBox(),
                             style: const TextStyle(
-                              color: Color(0xFF3C3A79),
+                              color: AppColors.textPrimary,
                               fontSize: 16,
                               fontFamily: 'Josefin Slab',
                             ),
@@ -517,7 +515,6 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
               ],
             ),
             const SizedBox(height: 16),
-            // Book Description
             if (book['description'] != null && book['description'].isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +524,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF3C3A79),
+                      color: AppColors.textPrimary,
                       fontFamily: 'Josefin Slab',
                     ),
                   ),
@@ -536,7 +533,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     book['description'],
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF3C3A79),
+                      color: AppColors.textPrimary,
                       fontFamily: 'Josefin Slab',
                     ),
                     maxLines: 3,
@@ -550,7 +547,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-    Widget _buildBookDetailsPopup(Map<String, dynamic> book) {
+  Widget _buildBookDetailsPopup(Map<String, dynamic> book) {
     return Container(
       color: Colors.black54,
       child: Center(
@@ -572,12 +569,12 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF3C3A79),
+                      color: AppColors.textPrimary,
                       fontFamily: 'Josefin Slab',
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close, color: AppColors.textPrimary),
                     onPressed: _hideBookDetails,
                   ),
                 ],
@@ -598,8 +595,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             Container(
                               width: 120,
                               height: 180,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.book, size: 60),
+                              color: AppColors.accent3,
+                              child: const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                             ),
                       ),
                     )
@@ -607,8 +604,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     Container(
                       width: 120,
                       height: 180,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.book, size: 60),
+                      color: AppColors.accent3,
+                      child: const Icon(Icons.book, size: 60, color: AppColors.textPrimary),
                     ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -620,7 +617,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab',
                           ),
                         ),
@@ -629,7 +626,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           'Author: ${book['authors'] ?? 'Unknown'}',
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab',
                           ),
                         ),
@@ -638,7 +635,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           'Published: ${book['publishedDate'] ?? 'Unknown'}',
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab',
                           ),
                         ),
@@ -647,7 +644,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                           'Genre: ${(book['categories'] as List?)?.join(', ') ?? 'Uncategorized'}',
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab',
                           ),
                         ),
@@ -666,7 +663,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF3C3A79),
+                        color: AppColors.textPrimary,
                         fontFamily: 'Josefin Slab',
                       ),
                     ),
@@ -675,7 +672,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                       book['description'],
                       style: const TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF3C3A79),
+                        color: AppColors.textPrimary,
                         fontFamily: 'Josefin Slab',
                       ),
                     ),
@@ -685,7 +682,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFACAAC7),
+                  color: AppColors.secondary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButton<String>(
@@ -693,7 +690,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                   isExpanded: true,
                   underline: const SizedBox(),
                   style: const TextStyle(
-                    color: Color(0xFF3C3A79),
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontFamily: 'Josefin Slab',
                   ),
@@ -742,10 +739,10 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide.none,
           ),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF3C3A79)),
+          prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, color: Color(0xFF3C3A79)),
+                  icon: const Icon(Icons.clear, color: AppColors.textPrimary),
                   onPressed: () {
                     _searchController.clear();
                     _performSearch('');
@@ -796,7 +793,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
           'No recent activity',
           style: TextStyle(
             fontSize: 16,
-            color: Color(0xFF3C3A79),
+            color: AppColors.textPrimary,
             fontFamily: 'Josefin Slab',
           ),
         ),
@@ -832,7 +829,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
           'No recommended books available',
           style: TextStyle(
             fontSize: 16,
-            color: Color(0xFF3C3A79),
+            color: AppColors.textPrimary,
             fontFamily: 'Josefin Slab',
           ),
         ),

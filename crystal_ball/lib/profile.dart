@@ -4,6 +4,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'database_service.dart';
+import 'colors.dart';
 
 class ProfilePage extends StatefulWidget {
   final String currentEmail;
@@ -70,9 +71,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   InputDecoration _fieldDecoration(String hint) => InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFACAAC7),
+        fillColor: AppColors.secondary,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white),
+        hintStyle: const TextStyle(color: AppColors.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
@@ -174,7 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE4D3EC),
+      backgroundColor: AppColors.background,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -182,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
             margin: const EdgeInsets.all(24),
             width: 600,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5E9F0),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
@@ -200,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: TextStyle(
                     fontSize: 32,
                     fontFamily: 'Island Moments',
-                    color: Color(0xFF3C3A79),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -217,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Email', style: TextStyle(fontSize: 20, color: Color(0xFF3C3A79), fontFamily: 'Josefin Slab')),
+                                const Text('Email', style: TextStyle(fontSize: 20, color: AppColors.textPrimary, fontFamily: 'Josefin Slab')),
                                 const SizedBox(height: 8),
                                 FormBuilderTextField(
                                   name: 'email',
@@ -234,7 +235,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Password', style: TextStyle(fontSize: 20, color: Color(0xFF3C3A79), fontFamily: 'Josefin Slab')),
+                                const Text('Password', style: TextStyle(fontSize: 20, color: AppColors.textPrimary, fontFamily: 'Josefin Slab')),
                                 const SizedBox(height: 8),
                                 FormBuilderTextField(
                                   name: 'password',
@@ -259,7 +260,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                       const Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Name', style: TextStyle(fontSize: 20, color: Color(0xFF3C3A79), fontFamily: 'Josefin Slab')),
+                        child: Text('Name', style: TextStyle(fontSize: 20, color: AppColors.textPrimary, fontFamily: 'Josefin Slab')),
                       ),
                       const SizedBox(height: 8),
                       FormBuilderTextField(
@@ -269,7 +270,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                       const SizedBox(height: 30),
 
-                      const Text('Favorite Genres', style: TextStyle(fontSize: 22, fontFamily: 'Josefin Slab', color: Color(0xFF3C3A79))),
+                      const Text('Favorite Genres', style: TextStyle(fontSize: 22, fontFamily: 'Josefin Slab', color: AppColors.textPrimary)),
                       const SizedBox(height: 16),
 
                       Wrap(
@@ -281,7 +282,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 200,
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xA33C3A79),
+                              color: AppColors.accent1,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -302,9 +303,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                         }
                                       });
                                     },
-                                    side: const BorderSide(color: Colors.white),
-                                    checkColor: Colors.white,
-                                    activeColor: const Color(0xFF3C3A79),
+                                    side: const BorderSide(color: AppColors.textSecondary),
+                                    checkColor: AppColors.textSecondary,
+                                    activeColor: AppColors.accent1,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -312,7 +313,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   child: Text(
                                     genre,
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.textSecondary,
                                       fontSize: 18,
                                       fontFamily: 'Sedan SC',
                                     ),
@@ -332,7 +333,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: ElevatedButton(
                           onPressed: _submitUpdate,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFACAAC7),
+                            backgroundColor: AppColors.secondary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -341,7 +342,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             'Update',
                             style: TextStyle(
                               fontSize: 20,
-                              color: Color(0xFF3C3A79),
+                              color: AppColors.textPrimary,
                               fontFamily: 'Josefin Slab',
                             ),
                           ),

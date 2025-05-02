@@ -12,7 +12,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE4D3EC),
+      backgroundColor: AppColors.background,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -20,7 +20,7 @@ class RegisterPage extends StatelessWidget {
             margin: const EdgeInsets.all(24),
             width: 600,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5E9F0),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
@@ -42,7 +42,7 @@ class RegisterPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 32,
                     fontFamily: 'Island Moments',
-                    color: Color(0xFF3C3A79),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -117,9 +117,9 @@ class _RegisterFormState extends State<RegisterForm> {
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFACAAC7),
+        fillColor: AppColors.secondary,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white),
+        hintStyle: const TextStyle(color: AppColors.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
@@ -142,7 +142,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     const Text('Email',
                         style: TextStyle(
                             fontSize: 22,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab')),
                     const SizedBox(height: 8),
                     FormBuilderTextField(
@@ -164,7 +164,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     const Text('Password',
                         style: TextStyle(
                             fontSize: 22,
-                            color: Color(0xFF3C3A79),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Josefin Slab')),
                     const SizedBox(height: 8),
                     FormBuilderTextField(
@@ -189,7 +189,7 @@ class _RegisterFormState extends State<RegisterForm> {
             style: TextStyle(
               fontSize: 22,
               fontFamily: 'Josefin Slab',
-              color: Color(0xFF3C3A79),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 10),
@@ -214,7 +214,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   width: 200, // Fixed width for consistent spacing
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xA33C3A79),
+                    color: AppColors.accent1,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -225,9 +225,9 @@ class _RegisterFormState extends State<RegisterForm> {
                         builder: (field) => Checkbox(
                           value: field.value ?? false,
                           onChanged: (val) => field.didChange(val),
-                          side: const BorderSide(color: Colors.white),
-                          checkColor: Colors.white,
-                          activeColor: const Color(0xFF3C3A79),
+                          side: const BorderSide(color: AppColors.textSecondary),
+                          checkColor: AppColors.textSecondary,
+                          activeColor: AppColors.accent1,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -235,7 +235,7 @@ class _RegisterFormState extends State<RegisterForm> {
                         child: Text(
                           genre,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textSecondary,
                             fontSize: 18,
                             fontFamily: 'Sedan SC',
                           ),
@@ -255,7 +255,7 @@ class _RegisterFormState extends State<RegisterForm> {
             child: ElevatedButton(
               onPressed: _register,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFACAAC7),
+                backgroundColor: AppColors.secondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -264,7 +264,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 'Register',
                 style: TextStyle(
                   fontSize: 20,
-                  color: Color(0xFF3C3A79),
+                  color: AppColors.textPrimary,
                   fontFamily: 'Josefin Slab',
                 ),
               ),

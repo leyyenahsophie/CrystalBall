@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'database_service.dart';
 import 'api_service.dart';
+import 'colors.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({super.key});
@@ -323,7 +324,17 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD3C9D1),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text(
+          'Book Reviews',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontFamily: 'Josefin Slab',
+          ),
+        ),
+        backgroundColor: AppColors.primary,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -335,7 +346,7 @@ class _ReviewPageState extends State<ReviewPage> {
               style: TextStyle(
                 fontSize: 32,
                 fontFamily: 'Josefin Slab',
-                color: Color(0xFF3C3A79),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 30),
@@ -355,21 +366,21 @@ class _ReviewPageState extends State<ReviewPage> {
               decoration: InputDecoration(
                 hintText: 'Write your review...',
                 filled: true,
-                fillColor: const Color(0xA33C3A79),
-                hintStyle: const TextStyle(color: Colors.white60),
+                fillColor: AppColors.secondary,
+                hintStyle: const TextStyle(color: AppColors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
             ),
             const SizedBox(height: 40),
 
             ElevatedButton(
               onPressed: submitReview,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8982AB),
+                backgroundColor: AppColors.accent1,
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -380,7 +391,7 @@ class _ReviewPageState extends State<ReviewPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontFamily: 'Josefin Slab',
-                  color: Color(0xFFE4D3EC),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -391,7 +402,7 @@ class _ReviewPageState extends State<ReviewPage> {
               style: TextStyle(
                 fontSize: 26,
                 fontFamily: 'Josefin Slab',
-                color: Color(0xFF3C3A79),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -401,7 +412,7 @@ class _ReviewPageState extends State<ReviewPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontFamily: 'Josefin Slab',
-                  color: Color(0xFF3C3A79),
+                  color: AppColors.textPrimary,
                 ),
               )
             else
@@ -429,7 +440,7 @@ class _ReviewPageState extends State<ReviewPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Josefin Slab',
-                        color: Color(0xFF3C3A79),
+                        color: AppColors.textPrimary,
                       ),
                     );
                   }
